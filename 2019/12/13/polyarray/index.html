@@ -7,14 +7,14 @@
   
   <title>polyarray | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="#define ll long longusing namespace std;const double PI = 3.14159265358979323846;const int MAXN = 1e5 + 33;&#x2F;&#x2F;定义Complex类class Complex{public:    double r, i;    Complex(double rr = 0, double ii = 0) {">
+  <meta name="description" content="(```) #define ll long long using namespace std; const double PI = 3.14159265358979323846; const int MAXN = 1e5 + 33; &#x2F;&#x2F;定义Complex类 class Complex { public:     double r, i;     Complex(double rr = 0, do">
 <meta property="og:type" content="article">
 <meta property="og:title" content="polyarray">
 <meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;12&#x2F;13&#x2F;polyarray&#x2F;index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="#define ll long longusing namespace std;const double PI = 3.14159265358979323846;const int MAXN = 1e5 + 33;&#x2F;&#x2F;定义Complex类class Complex{public:    double r, i;    Complex(double rr = 0, double ii = 0) {">
+<meta property="og:description" content="(```) #define ll long long using namespace std; const double PI = 3.14159265358979323846; const int MAXN = 1e5 + 33; &#x2F;&#x2F;定义Complex类 class Complex { public:     double r, i;     Complex(double rr = 0, do">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2019-12-13T07:56:05.113Z">
+<meta property="og:updated_time" content="2019-12-19T02:44:03.972Z">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
@@ -84,21 +84,351 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>#define ll long long<br>using namespace std;<br>const double PI = 3.14159265358979323846;<br>const int MAXN = 1e5 + 33;<br>//定义Complex类<br>class Complex<br>{<br>public:<br>    double r, i;<br>    Complex(double rr = 0, double ii = 0) { r = rr, i = ii; }<br>    Complex operator+(const Complex &amp;op) const { return Complex(r + op.r, i + op.i); }<br>    Complex operator-(const Complex &amp;op) const { return Complex(r - op.r, i - op.i); }<br>    Complex operator*(const Complex &amp;op) const { return Complex(r * op.r - i * op.i, i * op.r + r * op.i); }<br>};</p>
-<p>int Round(double x)<br>{<br>    return int(x + 0.5);<br>}<br>ll qp(ll x, ll y, ll MOD)<br>{<br>    ll ret = 1;<br>    while (y &gt; 0)<br>    {<br>        if (y &amp; 1)<br>            ret = ret * x % MOD;<br>        x = x * x % MOD;<br>        y &gt;&gt;= 1;<br>    }<br>    return ret;<br>}</p>
-<p>namespace FFT_template<br>{<br>Complex temp1[MAXN &lt;&lt; 2], temp2[MAXN &lt;&lt; 2];<br>void brc(Complex *p, int N)<br>{<br>    int i, j, k;<br>    for (i = 1, j = N &gt;&gt; 1; i &lt; N - 2; i++)<br>    {<br>        if (i &lt; j)<br>            swap(p[i], p[j]);<br>        for (k = N &gt;&gt; 1; j &gt;= k; k &gt;&gt;= 1)<br>            j -= k;<br>        if (j &lt; k)<br>            j += k;<br>    }<br>}<br>void FFT(Complex *p, int N, int op) //op==1 为正变换，op==-1为逆变换<br>{<br>    brc(p, N);<br>    double p0 = PI * op;<br>    for (int h = 2; h &lt;= N; h &lt;&lt;= 1, p0 *= 0.5)<br>    {<br>        int hf = h &gt;&gt; 1;<br>        Complex unit(cos(p0), sin(p0));<br>        for (int i = 0; i &lt; N; i += h)<br>        {<br>            Complex w(1.0, 0.0);<br>            for (int j = i; j &lt; i + hf; j++)<br>            {<br>                Complex u = p[j], v = w * p[j + hf];<br>                p[j] = u + v;<br>                p[j + hf] = u - v;<br>                w = w * unit;<br>            }<br>        }<br>    }<br>    if (op == -1)<br>        for (int i = 0; i &lt; N; i++)<br>            p[i].r /= N;<br>}<br>} // namespace FFT_template<br>using namespace FFT_template;</p>
-<p>namespace NTT_templates<br>{<br>// 998244353 原根为 3，1004535809 原根为 3，786433 原根为 10，880803841 原根为 26<br>const int MOD = 998244353, wroot = 3;<br>int wi[MAXN &lt;&lt; 2];<br>void brc(int *p, int N)<br>{<br>    int i, j, k;<br>    for (i = 1, j = N &gt;&gt; 1; i &lt; N - 2; i++)<br>    {<br>        if (i &lt; j)<br>            swap(p[i], p[j]);<br>        for (k = N &gt;&gt; 1; j &gt;= k; k &gt;&gt;= 1)<br>            j -= k;<br>        if (j &lt; k)<br>            j += k;<br>    }<br>}<br>void NTT_init(int N) //使用NTT之前调用,且N要保持一致,为2的幂<br>{<br>    wi[0] = 1;<br>    wi[1] = qp(wroot, (MOD - 1) / N, MOD);<br>    for (int i = 2; i &lt;= N; i++)<br>        wi[i] = (ll)wi[i - 1] * (ll)wi[1] % MOD;<br>}<br>void NTT(int *p, int N, int op)<br>{<br>    brc(p, N);<br>    for (int h = 2; h &lt;= N; h &lt;&lt;= 1)<br>    {<br>        int unit = ((op == -1) ? (N - N / h) : (N / h));<br>        int hf = h &gt;&gt; 1;<br>        for (int i = 0; i &lt; N; i += h)<br>        {<br>            int w = 0;<br>            for (int j = i; j &lt; i + hf; j++)<br>            {<br>                int u = p[j], v = (ll)wi[w] * (ll)p[j + hf] % MOD;<br>                if ((p[j] = u + v) &gt;= MOD)<br>                    p[j] -= MOD;<br>                if ((p[j + hf] = u - v) &lt; 0)<br>                    p[j + hf] += MOD;<br>                if ((w += unit) &gt;= N)<br>                    w -= N;<br>            }<br>        }<br>    }<br>    if (op == -1)<br>    {<br>        int inv = qp(N, MOD - 2, MOD);<br>        for (int i = 0; i &lt; N; i++)<br>            p[i] = (ll)p[i] * (ll)inv % MOD;<br>    }<br>}<br>} // namespace NTT_templates<br>using namespace NTT_templates;</p>
-<p>namespace Polynomial_mul<br>{<br>int temp11[MAXN &lt;&lt; 2], temp22[MAXN &lt;&lt; 2];<br>//对于给定n次多项式a和b,多项式res=a<em>b (可能有精度损失)<br>void Poly_mul_FFT(int *a, int *b, int *res, int n) //n为最高次项次数<br>{<br>    int N = 2;<br>    while (N &lt;= n + n)<br>        N &lt;&lt;= 1;<br>    Complex *A = temp1,<br>            *B = temp2;<br>    for (int i = 0; i &lt;= n; i++)<br>        A[i] = Complex(a[i], 0.0);<br>    for (int i = 0; i &lt;= n; i++)<br>        B[i] = Complex(b[i], 0.0);<br>    FFT(A, N, 1);<br>    FFT(B, N, 1);<br>    for (int i = 0; i &lt; N; i++)<br>        A[i] = A[i] * B[i];<br>    FFT(A, N, -1);<br>    for (int i = 0; i &lt; N; i++)<br>        res[i] = Round(A[i].r);<br>}<br>//对于给定n次多项式a和b,求出模MOD下的多项式res=a</em>b<br>void Poly_mul(int *a, int *b, int *res, int n)<br>{<br>    int N = 2;<br>    while (N &lt;= n + n)<br>        N &lt;&lt;= 1;<br>    NTT_init(N);<br>    int *A = temp11,<br>        *B = temp22;<br>    for (int i = 0; i &lt; N; i++)<br>        A[i] = a[i];<br>    for (int i = 0; i &lt; N; i++)<br>        B[i] = b[i];<br>    NTT(A, N, 1);<br>    NTT(B, N, 1);<br>    for (int i = 0; i &lt; N; i++)<br>        A[i] = (ll)A[i] * (ll)B[i] % MOD;<br>    NTT(A, N, -1);<br>    for (int i = 0; i &lt; N; i++)<br>        res[i] = A[i];<br>}<br>} // namespace Polynomial_mul<br>using namespace Polynomial_mul;</p>
-<p>//<br>int numinv[MAXN &lt;&lt; 1];<br>//返回模MOD意义下x的逆元 MOD为质数<br>int get_num_inv(int x)<br>{<br>    if (x &lt; (MAXN &lt;&lt; 1))<br>    {<br>        if (numinv[x])<br>            return numinv[x];<br>        return numinv[x] = qp(x, MOD - 2, MOD);<br>    }<br>    return qp(x, MOD - 2, MOD);<br>}<br>//</p>
-<p>//对n次多项式p求导得模MOD意义下的多项式res<br>void Poly_derivative(int *p, int *res, int n)<br>{<br>    for (int i = 0; i &lt;= n - 1; i++)<br>        res[i] = (ll)p[i + 1] * (i + 1) % MOD;<br>    res[n] = 0;<br>}<br>//对n次多项式p积分得模MOD意义下的多项式res 且res[0]=0;<br>void Poly_integral(int *p, int *res, int n)<br>{<br>    for (int i = n; i &gt;= 1; i–)<br>        res[i] = (ll)p[i - 1] * (ll)get_num_inv(i) % MOD;<br>    res[0] = 0;<br>}</p>
-<p>namespace Polynomial_inv<br>{<br>int tmp[MAXN &lt;&lt; 2], tmp2[MAXN &lt;&lt; 2];<br>void get_poly_inv(int *p, int *res, int N) //N是2的幂,一般不调用此函数 为项数,而非次数<br>{<br>    if (N &lt;= 1)<br>    {<br>        res[0] = qp(p[0], MOD - 2, MOD);<br>        return;<br>    }<br>    get_poly_inv(p, res, N &gt;&gt; 1);<br>    int K = N &lt;&lt; 1;<br>    int *temp = tmp;<br>    for (int i = 0; i &lt; N; i++)<br>        temp[i] = p[i];<br>    for (int i = N; i &lt; K; i++)<br>        temp[i] = res[i] = 0;<br>    NTT_init(K);<br>    NTT(temp, K, 1);<br>    NTT(res, K, 1);<br>    // cout &lt;&lt; temp[0] &lt;&lt; “ “ &lt;&lt; res[0] &lt;&lt; endl;<br>    for (int i = 0; i &lt; K; i++)<br>    {<br>        res[i] = (ll)res[i] * (2 - (ll)temp[i] * (ll)res[i] % MOD) % MOD;<br>        if (res[i] &lt; 0)<br>            res[i] += MOD;<br>    }<br>    NTT(res, K, -1);<br>    // for (int i = 0; i &lt; K; i++)<br>    //     cout &lt;&lt; res[i] &lt;&lt; ‘ ‘;<br>    // cout &lt;&lt; res[0] &lt;&lt; endl;<br>    for (int i = N; i &lt; K; i++)<br>        res[i] = 0;<br>}<br>//对给定n次多项式p,求出其模MOD以及x^(n+1)意义下的逆多项式res<br>void Poly_inv(int *p, int *res, int n) //n是最高次项次数 模x^(n+1) 系数模MOD 一般调用此函数<br>{<br>    int N = 2;<br>    while (N &lt;= n)<br>        N &lt;&lt;= 1;<br>    int dN = N &lt;&lt; 1;<br>    int *temp = tmp2;<br>    for (int i = 0; i &lt; dN; i++)<br>        temp[i] = 0;<br>    get_poly_inv(p, temp, N);<br>    for (int i = 0; i &lt;= n; i++)<br>        res[i] = temp[i];<br>}<br>} // namespace Polynomial_inv<br>using namespace Polynomial_inv;</p>
-<p>namespace Polynomial_ln<br>{<br>int tmp[MAXN &lt;&lt; 2], tmp2[MAXN &lt;&lt; 2];<br>void get_poly_ln(int *p, int *res, int N) //N为2的幂 为项数,而非次数<br>{<br>    int *temp = tmp;<br>    get_poly_inv(p, temp, N);<br>    int K = N &lt;&lt; 1;<br>    Poly_derivative(p, res, N - 1);<br>    for (int i = N; i &lt; K; i++)<br>        res[i] = 0;<br>    NTT_init(K);<br>    NTT(res, K, 1);<br>    NTT(temp, K, 1);<br>    for (int i = 0; i &lt; K; i++)<br>        res[i] = (ll)res[i] * temp[i] % MOD;<br>    NTT(res, K, -1);<br>    Poly_integral(res, res, N - 1);<br>}<br>//对给定n次多项式p (且p[0]==1) ,求出其模MOD以及x^(n+1)意义下的多项式res==ln(p)<br>void Poly_ln(int *p, int *res, int n) //n为最高项次数<br>{<br>    int N = 2;<br>    while (N &lt;= n)<br>        N &lt;&lt;= 1;<br>    int *temp = tmp2;<br>    get_poly_ln(p, temp, N);<br>    for (int i = 0; i &lt;= n; i++)<br>        res[i] = temp[i];<br>}<br>} // namespace Polynomial_ln<br>using namespace Polynomial_ln;</p>
-<p>namespace Polynomial_exp<br>{<br>int tmp[MAXN &lt;&lt; 2], tmp2[MAXN &lt;&lt; 2];<br>void get_poly_exp(int *p, int *res, int N) //N为2的幂 为项数,而非次数<br>{<br>    if (N &lt;= 1)<br>    {<br>        res[0] = 1;<br>        return;<br>    }<br>    get_poly_exp(p, res, N &gt;&gt; 1);<br>    int *temp = tmp;<br>    get_poly_ln(res, temp, N);<br>    int K = N &lt;&lt; 1;<br>    for (int i = 0; i &lt; N; i++)<br>    {<br>        temp[i] = p[i] - temp[i];<br>        if (temp[i] &lt; 0)<br>            temp[i] += MOD;<br>    }<br>    if ((++temp[0]) == MOD)<br>        temp[0] = 0;<br>    for (int i = N; i &lt; K; i++)<br>        temp[i] = res[i] = 0;<br>    NTT_init(K);<br>    NTT(temp, K, 1);<br>    NTT(res, K, 1);<br>    for (int i = 0; i &lt; K; i++)<br>        res[i] = (ll)res[i] * (ll)temp[i] % MOD;<br>    NTT(res, K, -1);<br>    for (int i = N; i &lt; K; i++)<br>        res[i] = 0;<br>}<br>//对给定n次多项式p (且p[0]==0) ,求出其模MOD以及x^(n+1)意义下的多项式res==exp(p)<br>void Poly_exp(int *p, int *res, int n)<br>{<br>    int N = 2;<br>    while (N &lt;= n)<br>        N &lt;&lt;= 1;<br>    int *temp = tmp2;<br>    get_poly_exp(p, temp, N);<br>    for (int i = 0; i &lt;= n; i++)<br>        res[i] = temp[i];<br>}<br>} // namespace Polynomial_exp<br>using namespace Polynomial_exp;</p>
+        <p>(```)</p>
+<pre><code>#define ll long long
+using namespace std;
+const double PI = 3.14159265358979323846;
+const int MAXN = 1e5 + 33;
+//定义Complex类
+class Complex
+{
+public:
+    double r, i;
+    Complex(double rr = 0, double ii = 0) { r = rr, i = ii; }
+    Complex operator+(const Complex &amp;op) const { return Complex(r + op.r, i + op.i); }
+    Complex operator-(const Complex &amp;op) const { return Complex(r - op.r, i - op.i); }
+    Complex operator*(const Complex &amp;op) const { return Complex(r * op.r - i * op.i, i * op.r + r * op.i); }
+};
+
+int Round(double x)
+{
+    return int(x + 0.5);
+}
+ll qp(ll x, ll y, ll MOD)
+{
+    ll ret = 1;
+    while (y &gt; 0)
+    {
+        if (y &amp; 1)
+            ret = ret * x % MOD;
+        x = x * x % MOD;
+        y &gt;&gt;= 1;
+    }
+    return ret;
+}
+
+namespace FFT_template
+{
+Complex temp1[MAXN &lt;&lt; 2], temp2[MAXN &lt;&lt; 2];
+void brc(Complex *p, int N)
+{
+    int i, j, k;
+    for (i = 1, j = N &gt;&gt; 1; i &lt; N - 2; i++)
+    {
+        if (i &lt; j)
+            swap(p[i], p[j]);
+        for (k = N &gt;&gt; 1; j &gt;= k; k &gt;&gt;= 1)
+            j -= k;
+        if (j &lt; k)
+            j += k;
+    }
+}
+void FFT(Complex *p, int N, int op) //op==1 为正变换，op==-1为逆变换
+{
+    brc(p, N);
+    double p0 = PI * op;
+    for (int h = 2; h &lt;= N; h &lt;&lt;= 1, p0 *= 0.5)
+    {
+        int hf = h &gt;&gt; 1;
+        Complex unit(cos(p0), sin(p0));
+        for (int i = 0; i &lt; N; i += h)
+        {
+            Complex w(1.0, 0.0);
+            for (int j = i; j &lt; i + hf; j++)
+            {
+                Complex u = p[j], v = w * p[j + hf];
+                p[j] = u + v;
+                p[j + hf] = u - v;
+                w = w * unit;
+            }
+        }
+    }
+    if (op == -1)
+        for (int i = 0; i &lt; N; i++)
+            p[i].r /= N;
+}
+} // namespace FFT_template
+using namespace FFT_template;
+
+namespace NTT_templates
+{
+// 998244353 原根为 3，1004535809 原根为 3，786433 原根为 10，880803841 原根为 26
+const int MOD = 998244353, wroot = 3;
+int wi[MAXN &lt;&lt; 2];
+void brc(int *p, int N)
+{
+    int i, j, k;
+    for (i = 1, j = N &gt;&gt; 1; i &lt; N - 2; i++)
+    {
+        if (i &lt; j)
+            swap(p[i], p[j]);
+        for (k = N &gt;&gt; 1; j &gt;= k; k &gt;&gt;= 1)
+            j -= k;
+        if (j &lt; k)
+            j += k;
+    }
+}
+void NTT_init(int N) //使用NTT之前调用,且N要保持一致,为2的幂
+{
+    wi[0] = 1;
+    wi[1] = qp(wroot, (MOD - 1) / N, MOD);
+    for (int i = 2; i &lt;= N; i++)
+        wi[i] = (ll)wi[i - 1] * (ll)wi[1] % MOD;
+}
+void NTT(int *p, int N, int op)
+{
+    brc(p, N);
+    for (int h = 2; h &lt;= N; h &lt;&lt;= 1)
+    {
+        int unit = ((op == -1) ? (N - N / h) : (N / h));
+        int hf = h &gt;&gt; 1;
+        for (int i = 0; i &lt; N; i += h)
+        {
+            int w = 0;
+            for (int j = i; j &lt; i + hf; j++)
+            {
+                int u = p[j], v = (ll)wi[w] * (ll)p[j + hf] % MOD;
+                if ((p[j] = u + v) &gt;= MOD)
+                    p[j] -= MOD;
+                if ((p[j + hf] = u - v) &lt; 0)
+                    p[j + hf] += MOD;
+                if ((w += unit) &gt;= N)
+                    w -= N;
+            }
+        }
+    }
+    if (op == -1)
+    {
+        int inv = qp(N, MOD - 2, MOD);
+        for (int i = 0; i &lt; N; i++)
+            p[i] = (ll)p[i] * (ll)inv % MOD;
+    }
+}
+} // namespace NTT_templates
+using namespace NTT_templates;
+
+namespace Polynomial_mul
+{
+int temp11[MAXN &lt;&lt; 2], temp22[MAXN &lt;&lt; 2];
+//对于给定n次多项式a和b,多项式res=a*b (可能有精度损失)
+void Poly_mul_FFT(int *a, int *b, int *res, int n) //n为最高次项次数
+{
+    int N = 2;
+    while (N &lt;= n + n)
+        N &lt;&lt;= 1;
+    Complex *A = temp1,
+            *B = temp2;
+    for (int i = 0; i &lt;= n; i++)
+        A[i] = Complex(a[i], 0.0);
+    for (int i = 0; i &lt;= n; i++)
+        B[i] = Complex(b[i], 0.0);
+    FFT(A, N, 1);
+    FFT(B, N, 1);
+    for (int i = 0; i &lt; N; i++)
+        A[i] = A[i] * B[i];
+    FFT(A, N, -1);
+    for (int i = 0; i &lt; N; i++)
+        res[i] = Round(A[i].r);
+}
+//对于给定n次多项式a和b,求出模MOD下的多项式res=a*b
+void Poly_mul(int *a, int *b, int *res, int n)
+{
+    int N = 2;
+    while (N &lt;= n + n)
+        N &lt;&lt;= 1;
+    NTT_init(N);
+    int *A = temp11,
+        *B = temp22;
+    for (int i = 0; i &lt; N; i++)
+        A[i] = a[i];
+    for (int i = 0; i &lt; N; i++)
+        B[i] = b[i];
+    NTT(A, N, 1);
+    NTT(B, N, 1);
+    for (int i = 0; i &lt; N; i++)
+        A[i] = (ll)A[i] * (ll)B[i] % MOD;
+    NTT(A, N, -1);
+    for (int i = 0; i &lt; N; i++)
+        res[i] = A[i];
+}
+} // namespace Polynomial_mul
+using namespace Polynomial_mul;
+
+//
+int numinv[MAXN &lt;&lt; 1];
+//返回模MOD意义下x的逆元 MOD为质数
+int get_num_inv(int x)
+{
+    if (x &lt; (MAXN &lt;&lt; 1))
+    {
+        if (numinv[x])
+            return numinv[x];
+        return numinv[x] = qp(x, MOD - 2, MOD);
+    }
+    return qp(x, MOD - 2, MOD);
+}
+//
+
+//对n次多项式p求导得模MOD意义下的多项式res
+void Poly_derivative(int *p, int *res, int n)
+{
+    for (int i = 0; i &lt;= n - 1; i++)
+        res[i] = (ll)p[i + 1] * (i + 1) % MOD;
+    res[n] = 0;
+}
+//对n次多项式p积分得模MOD意义下的多项式res 且res[0]=0;
+void Poly_integral(int *p, int *res, int n)
+{
+    for (int i = n; i &gt;= 1; i--)
+        res[i] = (ll)p[i - 1] * (ll)get_num_inv(i) % MOD;
+    res[0] = 0;
+}
+
+namespace Polynomial_inv
+{
+int tmp[MAXN &lt;&lt; 2], tmp2[MAXN &lt;&lt; 2];
+void get_poly_inv(int *p, int *res, int N) //N是2的幂,一般不调用此函数 为项数,而非次数
+{
+    if (N &lt;= 1)
+    {
+        res[0] = qp(p[0], MOD - 2, MOD);
+        return;
+    }
+    get_poly_inv(p, res, N &gt;&gt; 1);
+    int K = N &lt;&lt; 1;
+    int *temp = tmp;
+    for (int i = 0; i &lt; N; i++)
+        temp[i] = p[i];
+    for (int i = N; i &lt; K; i++)
+        temp[i] = res[i] = 0;
+    NTT_init(K);
+    NTT(temp, K, 1);
+    NTT(res, K, 1);
+    // cout &lt;&lt; temp[0] &lt;&lt; &quot; &quot; &lt;&lt; res[0] &lt;&lt; endl;
+    for (int i = 0; i &lt; K; i++)
+    {
+        res[i] = (ll)res[i] * (2 - (ll)temp[i] * (ll)res[i] % MOD) % MOD;
+        if (res[i] &lt; 0)
+            res[i] += MOD;
+    }
+    NTT(res, K, -1);
+    // for (int i = 0; i &lt; K; i++)
+    //     cout &lt;&lt; res[i] &lt;&lt; &apos; &apos;;
+    // cout &lt;&lt; res[0] &lt;&lt; endl;
+    for (int i = N; i &lt; K; i++)
+        res[i] = 0;
+}
+//对给定n次多项式p,求出其模MOD以及x^(n+1)意义下的逆多项式res
+void Poly_inv(int *p, int *res, int n) //n是最高次项次数 模x^(n+1) 系数模MOD 一般调用此函数
+{
+    int N = 2;
+    while (N &lt;= n)
+        N &lt;&lt;= 1;
+    int dN = N &lt;&lt; 1;
+    int *temp = tmp2;
+    for (int i = 0; i &lt; dN; i++)
+        temp[i] = 0;
+    get_poly_inv(p, temp, N);
+    for (int i = 0; i &lt;= n; i++)
+        res[i] = temp[i];
+}
+} // namespace Polynomial_inv
+using namespace Polynomial_inv;
+
+namespace Polynomial_ln
+{
+int tmp[MAXN &lt;&lt; 2], tmp2[MAXN &lt;&lt; 2];
+void get_poly_ln(int *p, int *res, int N) //N为2的幂 为项数,而非次数
+{
+    int *temp = tmp;
+    get_poly_inv(p, temp, N);
+    int K = N &lt;&lt; 1;
+    Poly_derivative(p, res, N - 1);
+    for (int i = N; i &lt; K; i++)
+        res[i] = 0;
+    NTT_init(K);
+    NTT(res, K, 1);
+    NTT(temp, K, 1);
+    for (int i = 0; i &lt; K; i++)
+        res[i] = (ll)res[i] * temp[i] % MOD;
+    NTT(res, K, -1);
+    Poly_integral(res, res, N - 1);
+}
+//对给定n次多项式p (且p[0]==1) ,求出其模MOD以及x^(n+1)意义下的多项式res==ln(p)
+void Poly_ln(int *p, int *res, int n) //n为最高项次数
+{
+    int N = 2;
+    while (N &lt;= n)
+        N &lt;&lt;= 1;
+    int *temp = tmp2;
+    get_poly_ln(p, temp, N);
+    for (int i = 0; i &lt;= n; i++)
+        res[i] = temp[i];
+}
+} // namespace Polynomial_ln
+using namespace Polynomial_ln;
+
+namespace Polynomial_exp
+{
+int tmp[MAXN &lt;&lt; 2], tmp2[MAXN &lt;&lt; 2];
+void get_poly_exp(int *p, int *res, int N) //N为2的幂 为项数,而非次数
+{
+    if (N &lt;= 1)
+    {
+        res[0] = 1;
+        return;
+    }
+    get_poly_exp(p, res, N &gt;&gt; 1);
+    int *temp = tmp;
+    get_poly_ln(res, temp, N);
+    int K = N &lt;&lt; 1;
+    for (int i = 0; i &lt; N; i++)
+    {
+        temp[i] = p[i] - temp[i];
+        if (temp[i] &lt; 0)
+            temp[i] += MOD;
+    }
+    if ((++temp[0]) == MOD)
+        temp[0] = 0;
+    for (int i = N; i &lt; K; i++)
+        temp[i] = res[i] = 0;
+    NTT_init(K);
+    NTT(temp, K, 1);
+    NTT(res, K, 1);
+    for (int i = 0; i &lt; K; i++)
+        res[i] = (ll)res[i] * (ll)temp[i] % MOD;
+    NTT(res, K, -1);
+    for (int i = N; i &lt; K; i++)
+        res[i] = 0;
+}
+//对给定n次多项式p (且p[0]==0) ,求出其模MOD以及x^(n+1)意义下的多项式res==exp(p)
+void Poly_exp(int *p, int *res, int n)
+{
+    int N = 2;
+    while (N &lt;= n)
+        N &lt;&lt;= 1;
+    int *temp = tmp2;
+    get_poly_exp(p, temp, N);
+    for (int i = 0; i &lt;= n; i++)
+        res[i] = temp[i];
+}
+} // namespace Polynomial_exp
+using namespace Polynomial_exp;</code></pre><p>(```)</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/12/13/polyarray/" data-id="ck43v0shr0002skqfec8n5fmv" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/12/13/polyarray/" data-id="ck4c4gomi0001f8qfciul5rbe" class="article-share-link">Share</a>
       
       
     </footer>
@@ -106,6 +436,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2019/12/19/%E5%A4%A7%E4%B8%80%E4%B8%8A,%E8%8B%A6%E6%81%BC/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          大一上,苦恼
+        
+      </div>
+    </a>
   
   
     <a href="/2019/12/12/mypoly/" id="article-nav-older" class="article-nav-link-wrap">
@@ -145,6 +484,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/12/19/%E5%A4%A7%E4%B8%80%E4%B8%8A,%E8%8B%A6%E6%81%BC/">大一上,苦恼</a>
+          </li>
         
           <li>
             <a href="/2019/12/13/polyarray/">polyarray</a>
