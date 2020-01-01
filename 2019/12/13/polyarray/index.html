@@ -240,6 +240,7 @@ void Poly_mul(const int *a, const int *b, int *res, const int n)
 }
 } // namespace Polynomial_mul
 
+//
 int numinv[MAXN &lt;&lt; 1];
 //返回模MOD意义下x的逆元 MOD为质数
 int get_num_inv(int x)
@@ -253,6 +254,7 @@ int get_num_inv(int x)
     return qp(x, MOD - 2, MOD);
 }
 //
+
 //对n次多项式p求导得模MOD意义下的多项式res
 void Poly_derivative(const int *p, int *res, const int n)
 {
@@ -320,7 +322,7 @@ void Poly_inv(const int *p, int *res, const int n) //n是最高次项次数 模x
 namespace Polynomial_ln
 {
 using namespace NTT_templates;
-int tmp[MAXN &lt;&lt; 2], tmp2[MAXN &lt;&lt; 2];
+int tmp[MAXN &lt;&lt; 2], tmp2[MAXN &lt;&lt; 2], tmp3[MAXN &lt;&lt; 2];
 void get_poly_ln(const int *p, int *res, const int N) //N为2的幂 为项数,而非次数
 {
     int *temp = tmp;
@@ -343,10 +345,13 @@ void Poly_ln(const int *p, int *res, const int n) //n为最高项次数
     int N = 2;
     while (N &lt;= n)
         N &lt;&lt;= 1;
-    int *temp = tmp2;
-    get_poly_ln(p, temp, N);
+    int *temp_in = tmp3,
+        *temp_out = tmp2;
+    for (int i = 0; i &lt; N; i++)
+        temp_in[i] = (i &lt;= n ? p[i] : 0);
+    get_poly_ln(temp_in, temp_out, N);
     for (int i = 0; i &lt;= n; i++)
-        res[i] = temp[i];
+        res[i] = temp_out[i];
 }
 } // namespace Polynomial_ln
 
@@ -447,6 +452,7 @@ int main()
     for (int i = 0; i &lt;= n; i++)
         cin &gt;&gt; a[i];
     // Poly_inv(a, b, n);
+    Polynomial_ln::Poly_ln(a, b, n);
     for (int i = 0; i &lt;= n; i++)
         cout &lt;&lt; b[i] &lt;&lt; &apos; &apos;;
 
