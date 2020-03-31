@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>partialsolutions | Eserinc&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    
+      <link rel="icon" href="/favicon.png">
+    
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <link rel="stylesheet" href="/js/google-code-prettify/tomorrow-night-eighties.min.css">
+
+  </head>
+
+  <body>
+
+<header>
+	<a id="logo" href="/" title="Eserinc&#39;s blog">
+	<img src="/favicon.png" alt="Eserinc&#39;s blog"></a>
+	
+	
+		<!--搜索栏-->
+		<i class="js-toggle-search iconfont icon-search"></i>
+
+
+<form class="js-search search-form search-form--modal" method="get" action="http://youmu.love" role="search">
+	<div class="search-form__inner">
+		<div>
+			<i class="iconfont icon-search"></i>
+			<input class="text-input" placeholder="Enter Key..." type="search">
+		</div>
+	</div>
+</form>
+	
+
+	
+
+</header>
+<div class="m-header ">
+	<section id="hero1" class="hero">
+		<div class="inner">
+		</div>
+	</section>
+	
+		<figure class="top-image" data-enable=true></figure>
+	
+</div>
+
+<!--文章列表-->
+<div class="wrapper">
+  
+    <!--文章-->
+<article>
+	
+  
+    <h1 class="post-title" itemprop="name">
+      partialsolutions
+    </h1>
+  
+
+	<div class='post-body mb'>
+		<h2 id="C"><a href="#C" class="headerlink" title="C:"></a>C:</h2><p>dp[i][st]:在第i列时，i-1列及之前已经全部填满，用方块将第i列状态填为st时的方案数。</p>
+<pre><code>dp[i][st0] -&gt; dp[i+1][st1]:</code></pre><p>首先要求st0中没有填的位置，st1必须填好，因为按照dp定义，我们必须填完之前所有方块，而我们仅有横着的2x1方块能填充之前一列。</p>
+<p>剩下待填方块可能是几个分立的区间，需要用1x1,1x2填充。由乘法原理，先单独算每个区间的方案数，最后再乘起来。而单独一个区间的方案数则是婓波那契数列。</p>
+<p>算出总方案数s(st0,st1)后,</p>
+<pre><code>dp[i+1][st1]=dp[i][st0]*s(st0,st1);</code></pre><p>转移与i无关，将所有s(st0,st1)计算出后矩阵快速幂即可。</p>
+<h2 id="I"><a href="#I" class="headerlink" title="I:"></a>I:</h2><p>将下去和上来看作两个人一起下去。</p>
+<p>每层梯子数有限,设dp[s][i][j]:在第s层通过第i,j个楼梯下到第s+1层时，已经拿到的最大糖果数。</p>
+<pre><code>dp[s][i][j]-&gt;dp[s+1][ii][jj]</code></pre><p>首先检查i,ii对应的区间与j,jj对应的区间是否存在交集，若存在交集，交集中是否有糖果，如果有糖果则直接continue，次为无效转移，因为有糖果的地方仅能路过一次，路径交叉则必然路过两次，不合题中限制。</p>
+<p>如果上述条件符合，则可以转移。注意到每个区间的端点之外第一个糖果也可以拿，因为也仅需经过一次，碰到就可以回来了。注意两区间不要拿重了，可能有个糖果是两区间共同的边缘第一个。</p>
+<p>计算答案时，枚举s : 2-&gt;n , i ,j<br>然后i,j直接拿完i,j区间以及i,j区间外第一个可拿糖果，用此更新ans.<br>注意s要枚举到n，因为最下层地板也是可以走的，可以多提供一条路径。</p>
+
+	</div>
+	<div class="meta split">
+		
+		<time class="post-date" datetime="2020-03-31T12:58:49.344Z" itemprop="datePublished">2020-03-31</time>
+	</div>
+</article>
+
+<!--评论-->
+
+	
+<div class="ds-thread" data-thread-key="partialsolutions" data-title="partialsolutions" data-url="http://youmu.love/2020/03/31/partialsolutions/"></div>
+<script type="text/javascript">
+
+var duoshuoQuery = {short_name:"yumemor"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0]
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+</script>
+
+
+  
+</div>
+
+
+  <svg id="bigTriangleColor" width="100%" height="40" viewBox="0 0 100 102" preserveAspectRatio="none">
+    <path d="M0 0 L50 100 L100 0 Z"></path>
+  </svg>
+
+  
+
+
+  <div class="wrapper"></div>
+
+
+
+
+
+<div class="fat-footer">
+	<div class="wrapper">
+		<div class="layout layout--center">
+			<div class="layout__item palm-mb">
+				<div class="media">
+					<img class="headimg" src='https://raw.githubusercontent.com/pass-er-by/imagehost/master/image/fox3.jpeg' alt='Eserinc'>
+					<div class="media__body">
+						<h4>Eserinc</h4>
+						<p class='site-description'>Love life.</p>
+					</div>
+				</div>
+				<div class="author-contact">
+					<ul>
+						
+							
+							<li>
+				        		<a href="https://github.com/pass-er-by" target="_blank">
+				        			
+				        				<i class="iconfont icon-github"></i>
+				        			
+				        		</a>
+				        	</li>
+						
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<footer class="footer" role="contentinfo">
+	<div class="wrapper wrapper--wide split split--responsive">
+		
+		<span>Theme by <a href="http://github.com/justpsvm" target="_blank" rel="noopener">justpsvm</a>. Powered by <a href="http://hexo.io" target="_blank" rel="noopener">Hexo</a></span>
+	</div>
+</footer>
+
+	<!-－这里导入了 lib.js 里面涵盖了 jQuery 等框架 所以注释掉-->
+	<!--<script src="http://lib.sinaapp.com/js/jquery/2.0/jquery.min.js"></script>-->
+	<script src="/js/lib.js"></script>
+	<script src="/js/google-code-prettify/prettify.js"></script>
+	<script src="/js/module.js"></script>
+	<script src="/js/script.js"></script>
+	
+	<script type='text/javascript'>
+		//代码高亮
+		$(document).ready(function(){
+	 		$('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+   			prettyPrint();
+		});
+	</script>
+	</body>
+</html>
