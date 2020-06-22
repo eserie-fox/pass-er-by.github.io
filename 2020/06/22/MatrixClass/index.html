@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>MatrixClass | Eserinc&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    
+      <link rel="icon" href="/favicon.png">
+    
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <link rel="stylesheet" href="/js/google-code-prettify/tomorrow-night-eighties.min.css">
+
+  </head>
+
+  <body>
+
+<header>
+	<a id="logo" href="/" title="Eserinc&#39;s blog">
+	<img src="/favicon.png" alt="Eserinc&#39;s blog"></a>
+	
+	
+		<!--搜索栏-->
+		<i class="js-toggle-search iconfont icon-search"></i>
+
+
+<form class="js-search search-form search-form--modal" method="get" action="http://youmu.love" role="search">
+	<div class="search-form__inner">
+		<div>
+			<i class="iconfont icon-search"></i>
+			<input class="text-input" placeholder="Enter Key..." type="search">
+		</div>
+	</div>
+</form>
+	
+
+	
+
+</header>
+<div class="m-header ">
+	<section id="hero1" class="hero">
+		<div class="inner">
+		</div>
+	</section>
+	
+		<figure class="top-image" data-enable=true></figure>
+	
+</div>
+
+<!--文章列表-->
+<div class="wrapper">
+  
+    <!--文章-->
+<article>
+	
+  
+    <h1 class="post-title" itemprop="name">
+      MatrixClass
+    </h1>
+  
+
+	<div class='post-body mb'>
+		<p>矩阵类，使用朴素矩阵乘法算法，有一定常数优化，四重循环展开</p>
+<pre><code>const int MOD = 1e9 + 7;
+
+template &lt;typename T&gt;
+class Matrix
+{
+public:
+    vector&lt;T&gt; arr;
+    int N, NN;
+    T e, z;
+#define __e 1
+#define __z 0
+    //大小，乘法单位元，加法单位元
+    Matrix(int n, T _e = __e, T _z = __z)
+    {
+        N = n;
+        NN = N * N;
+        e = _e;
+        z = _z;
+        arr.resize(N * N);
+    }
+    Matrix(const Matrix &amp;other)
+    {
+        N = other.N;
+        NN = N * N;
+        e = other.e;
+        z = other.z;
+        arr = other.arr;
+    }
+    Matrix(const Matrix *other)
+    {
+        N = other-&gt;N;
+        NN = N * N;
+        e = other-&gt;e;
+        z = other-&gt;z;
+        arr = other-&gt;arr;
+    }
+#undef __e
+#undef __z
+    ~Matrix()
+    {
+        vector&lt;T&gt; _tmp;
+        arr.swap(_tmp);
+    }
+    Matrix &amp;operator=(const Matrix &amp;other)
+    {
+        N = other.N;
+        NN = N * N;
+        e = other.e;
+        z = other.z;
+        arr = other.arr;
+        return *this;
+    }
+    inline static void Maintain(T &amp;x)
+    {
+        x = x % MOD;
+        if (x &lt; 0)
+            x += MOD;
+    }
+
+    //不做越界检查
+    inline T &amp;operator()(int i, int j)
+    {
+        return arr[i * N + j];
+    }
+
+    // 保证大小相同
+    inline Matrix operator+(const Matrix &amp;other) const
+    {
+        Matrix ret(N, e, z);
+        for (int i = 0; i &lt; NN; i++)
+        {
+            ret.arr[i] = arr[i] + other.arr[i];
+            Maintain(ret.arr[i]);
+        }
+        return ret;
+    }
+    inline Matrix operator-(const Matrix &amp;other) const
+    {
+        Matrix ret(N, e, z);
+        for (int i = 0; i &lt; NN; i++)
+        {
+            ret.arr[i] = arr[i] - other.arr[i];
+            Maintain(ret.arr[i]);
+        }
+        return ret;
+    }
+
+    // Guaranteed that no exception
+    inline Matrix operator*(const Matrix &amp;other)
+    {
+        Matrix ret(N, e, z);
+        if (N &lt;= 1024)
+        {
+            T _buf;
+            int iN, kN_j, iN_j;
+            for (int i = 0; i &lt; N; ++i)
+            {
+                iN = i * N;
+                for (int k = 0; k &lt; N; ++k)
+                {
+                    _buf = arr[iN + k];
+                    iN_j = iN;
+                    kN_j = k * N;
+                    int j;
+                    for (j = 0; j + 4 &lt; N; j += 4, iN_j += 4, kN_j += 4)
+                    {
+                        ret.arr[iN_j] = ret.arr[iN_j] + _buf * other.arr[kN_j];
+                        Maintain(ret.arr[iN_j]);
+                        ret.arr[iN_j + 1] = ret.arr[iN_j + 1] + _buf * other.arr[kN_j + 1];
+                        Maintain(ret.arr[iN_j + 1]);
+                        ret.arr[iN_j + 2] = ret.arr[iN_j + 2] + _buf * other.arr[kN_j + 2];
+                        Maintain(ret.arr[iN_j + 2]);
+                        ret.arr[iN_j + 3] = ret.arr[iN_j + 3] + _buf * other.arr[kN_j + 3];
+                        Maintain(ret.arr[iN_j + 3]);
+                    }
+                    for (; j &lt; N; ++j, ++iN_j, ++kN_j)
+                    {
+                        ret.arr[iN_j] = ret.arr[iN_j] + _buf * other.arr[kN_j];
+                        Maintain(ret.arr[iN_j]);
+                    }
+                }
+            }
+            // for (int i = 0; i &lt; N; i++)
+            // {
+            //     for (int j = 0; j &lt; N; j++)
+            //     {
+            //         ret(i, j) = z;
+            //         for (int k = 0; k &lt; N; k++)
+            //         {
+            //             ret(i, j) = ret(i, j) + arr[i * N + k] * other.arr[k * N + j];
+            //             Maintain(ret(i, j));
+            //         }
+            //     }
+            // }
+            return ret;
+        }
+        else
+        {
+            //较大则分治
+            Matrix *A = this-&gt;FillToFit();
+            Matrix *B = other.FillToFit();
+            Matrix *A11 = A-&gt;Quarter(0);
+            Matrix *A12 = A-&gt;Quarter(1);
+            Matrix *A21 = A-&gt;Quarter(2);
+            Matrix *A22 = A-&gt;Quarter(3);
+
+            Matrix *B11 = B-&gt;Quarter(0);
+            Matrix *B12 = B-&gt;Quarter(1);
+            Matrix *B21 = B-&gt;Quarter(2);
+            Matrix *B22 = B-&gt;Quarter(3);
+
+            Matrix &amp;&amp;M1 = (*A11 + *A22) * (*B11 + *B22);
+            Matrix &amp;&amp;M2 = (*A21 + *A22) * (*B11);
+            Matrix &amp;&amp;M3 = (*A11) * (*B12 - *B22);
+            Matrix &amp;&amp;M4 = (*A22) * (*B21 - *B11);
+            Matrix &amp;&amp;M5 = (*A11 + *A12) * (*B22);
+            Matrix &amp;&amp;M6 = (*A21 - *A11) * (*B11 + *B12);
+            Matrix &amp;&amp;M7 = (*A12 - *A22) * (*B21 + *B22);
+            Matrix *Ans = Merge(M1 + M4 - M5 + M7, M3 + M5, M2 + M4, M1 - M2 + M3 + M6);
+            auto Ansarr = Ans-&gt;arr.begin();
+            int AnsN = Ans-&gt;N;
+            int iN_j = 0, in_j;
+            for (int i = 0; i &lt; N; ++i)
+            {
+                in_j = i * AnsN;
+                for (int j = 0; j &lt; N; ++j, ++iN_j, ++in_j)
+                {
+                    ret.arr[iN_j] = Ansarr[in_j];
+                }
+            }
+            {
+                delete A;
+                delete B;
+                delete A11;
+                delete A12;
+                delete A21;
+                delete A22;
+                delete B11;
+                delete B12;
+                delete B21;
+                delete B22;
+                delete Ans;
+            }
+            return ret;
+        }
+    }
+
+    inline Matrix QuickPow(long long k)
+    {
+        Matrix ret(N, e, z);
+        ret.GetE();
+        Matrix *mul = new Matrix(this);
+        while (k &gt; 0)
+        {
+            if (k &amp; 1)
+                ret = ret * (*mul);
+            *mul = (*mul) * (*mul);
+            k &gt;&gt;= 1;
+        }
+        delete mul;
+        return ret;
+    }
+
+    void GetZero()
+    {
+        int NN = N * N;
+        for (int i = 0; i &lt; NN; i++)
+            arr[i] = z;
+    }
+    void GetE()
+    {
+        int iN_j = 0;
+        for (int i = 0; i &lt; N; i++)
+            for (int j = 0; j &lt; N; j++, ++iN_j)
+                arr[iN_j] = (i == j) ? e : z;
+    }
+
+private:
+    //返回四分之一分块矩阵，需要保证N为2的幂,pos = 0~3 分别为 左上，右上，左下，右下
+    Matrix *Quarter(int pos) const
+    {
+        Matrix *ret = new Matrix(N / 2, e, z);
+        int offsetx, offsety;
+        offsetx = ((pos &amp; 2) &gt; 0) * (N / 2);
+        offsety = ((pos &amp; 1) &gt; 0) * (N / 2);
+        int offset = offsetx * N + offsety;
+        //0~3 分别为 左上，右上，左下，右下
+        int retN = ret-&gt;N;
+        auto retarr = ret-&gt;arr.begin();
+        int iretN_j = 0;
+        int iN_j_offset;
+        for (int i = 0; i &lt; retN; i++)
+        {
+            iN_j_offset = i * N + offset;
+            for (int j = 0; j &lt; retN; j++, ++iN_j_offset, ++iretN_j)
+            {
+                retarr[iretN_j] = arr[iN_j_offset];
+            }
+        }
+        return ret;
+    }
+
+    //添加空元素以适应其大小为2的幂
+    inline Matrix *FillToFit() const
+    {
+        int n = 1;
+        while (n &lt; N)
+            n &lt;&lt;= 1;
+        Matrix *ret = new Matrix(n, e, z);
+        ret-&gt;GetZero();
+        auto retarr = ret-&gt;arr.begin();
+        int in_j, iN_j = 0;
+        for (int i = 0; i &lt; N; i++)
+        {
+            in_j = i * n;
+            for (int j = 0; j &lt; N; j++, ++in_j, ++iN_j)
+            {
+                retarr[in_j] = arr[iN_j];
+            }
+        }
+        return ret;
+    }
+
+    //需要保证大小相同，分别为 左上，右上，左下，右下
+    inline static Matrix *Merge(const Matrix &amp;LU, const Matrix &amp;RU, const Matrix &amp;LD, const Matrix &amp;RD)
+    {
+        Matrix *ret = new Matrix(2 * LU.N, LU.e, LU.z);
+        int n = LU.N;
+        int nn = n * n;
+        int nn_n = nn + n;
+        auto retarr = ret-&gt;arr.begin();
+        int iN_j = 0;
+        int retN = ret-&gt;N;
+        for (int i = 0; i &lt; retN; i++)
+        {
+            int in_j = i * n;
+            for (int j = 0; j &lt; retN; ++j, ++in_j, ++iN_j)
+            {
+                if (i &lt; n)
+                {
+                    if (j &lt; n)
+                        retarr[iN_j] = LU.arr[in_j];
+                    else
+                        retarr[iN_j] = RU.arr[in_j - n];
+                }
+                else
+                {
+                    if (j &lt; n)
+                        retarr[iN_j] = LD.arr[in_j - nn];
+                    else
+                        retarr[iN_j] = RD.arr[in_j - nn_n];
+                }
+                Maintain(retarr[iN_j]);
+            }
+        }
+        return ret;
+    }
+};</code></pre>
+	</div>
+	<div class="meta split">
+		
+		<time class="post-date" datetime="2020-06-22T15:29:55.746Z" itemprop="datePublished">2020-06-22</time>
+	</div>
+</article>
+
+<!--评论-->
+
+	
+<div class="ds-thread" data-thread-key="MatrixClass" data-title="MatrixClass" data-url="http://youmu.love/2020/06/22/MatrixClass/"></div>
+<script type="text/javascript">
+
+var duoshuoQuery = {short_name:"yumemor"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0]
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+</script>
+
+
+  
+</div>
+
+
+  <svg id="bigTriangleColor" width="100%" height="40" viewBox="0 0 100 102" preserveAspectRatio="none">
+    <path d="M0 0 L50 100 L100 0 Z"></path>
+  </svg>
+
+  
+
+
+  <div class="wrapper"></div>
+
+
+
+
+
+<div class="fat-footer">
+	<div class="wrapper">
+		<div class="layout layout--center">
+			<div class="layout__item palm-mb">
+				<div class="media">
+					<img class="headimg" src='https://raw.githubusercontent.com/pass-er-by/imagehost/master/image/fox3.jpeg' alt='Eserinc'>
+					<div class="media__body">
+						<h4>Eserinc</h4>
+						<p class='site-description'>Love life.</p>
+					</div>
+				</div>
+				<div class="author-contact">
+					<ul>
+						
+							
+							<li>
+				        		<a href="https://github.com/pass-er-by" target="_blank">
+				        			
+				        				<i class="iconfont icon-github"></i>
+				        			
+				        		</a>
+				        	</li>
+						
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<footer class="footer" role="contentinfo">
+	<div class="wrapper wrapper--wide split split--responsive">
+		
+		<span>Theme by <a href="http://github.com/justpsvm" target="_blank" rel="noopener">justpsvm</a>. Powered by <a href="http://hexo.io" target="_blank" rel="noopener">Hexo</a></span>
+	</div>
+</footer>
+
+	<!-－这里导入了 lib.js 里面涵盖了 jQuery 等框架 所以注释掉-->
+	<!--<script src="http://lib.sinaapp.com/js/jquery/2.0/jquery.min.js"></script>-->
+	<script src="/js/lib.js"></script>
+	<script src="/js/google-code-prettify/prettify.js"></script>
+	<script src="/js/module.js"></script>
+	<script src="/js/script.js"></script>
+	
+	<script type='text/javascript'>
+		//代码高亮
+		$(document).ready(function(){
+	 		$('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+   			prettyPrint();
+		});
+	</script>
+	</body>
+</html>
