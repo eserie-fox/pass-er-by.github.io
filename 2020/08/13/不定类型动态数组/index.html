@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>不定类型动态数组 | Eserinc&#39;s blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    
+      <link rel="icon" href="/favicon.png">
+    
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <link rel="stylesheet" href="/js/google-code-prettify/tomorrow-night-eighties.min.css">
+
+  </head>
+
+  <body>
+
+<header>
+	<a id="logo" href="/" title="Eserinc&#39;s blog">
+	<img src="/favicon.png" alt="Eserinc&#39;s blog"></a>
+	
+	
+		<!--搜索栏-->
+		<i class="js-toggle-search iconfont icon-search"></i>
+
+
+<form class="js-search search-form search-form--modal" method="get" action="http://youmu.love" role="search">
+	<div class="search-form__inner">
+		<div>
+			<i class="iconfont icon-search"></i>
+			<input class="text-input" placeholder="Enter Key..." type="search">
+		</div>
+	</div>
+</form>
+	
+
+	
+
+</header>
+<div class="m-header ">
+	<section id="hero1" class="hero">
+		<div class="inner">
+		</div>
+	</section>
+	
+		<figure class="top-image" data-enable=true></figure>
+	
+</div>
+
+<!--文章列表-->
+<div class="wrapper">
+  
+    <!--文章-->
+<article>
+	
+  
+    <h1 class="post-title" itemprop="name">
+      不定类型动态数组
+    </h1>
+  
+
+	<div class='post-body mb'>
+		<h1 id="不定类型的动态数组，依赖多态以及-template-实现"><a href="#不定类型的动态数组，依赖多态以及-template-实现" class="headerlink" title="不定类型的动态数组，依赖多态以及 template 实现"></a>不定类型的动态数组，依赖多态以及 template 实现</h1><pre><code>#include &lt;typeinfo&gt;
+#include &lt;assert.h&gt;
+#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+class List
+{
+public:
+    using size_t = unsigned long long int;
+    using pos_t = long long int;
+    class Any
+    {
+    private:
+        class Object
+        {
+        public:
+            virtual ~Object() {}
+            virtual const std::type_info &amp;type() const = 0;
+            virtual Object *clone() const = 0;
+        };
+        template &lt;typename T&gt;
+        class Element : public Object
+        {
+        public:
+            Element(const T &amp;value);
+
+        public:
+            virtual const std::type_info &amp;type() const;
+            virtual Object *clone() const;
+            T &amp;data();
+
+        private:
+            T _data;
+        };
+
+    private:
+        Object *content = nullptr;
+
+    public:
+        Any();
+
+        template &lt;typename T&gt;
+        Any(const T &amp;value);
+
+        Any(const Any &amp;other);
+
+        ~Any();
+
+        void erase();
+
+        bool empty() const;
+
+        void move_to(Any &amp;destination);
+
+        template &lt;typename T&gt;
+        T &amp;cast();
+
+        template &lt;typename T&gt;
+        operator T();
+
+        void swap(Any &amp;other);
+
+        const std::type_info &amp;type() const;
+
+        Any &amp;operator=(const Any &amp;other);
+
+        template &lt;typename T&gt;
+        Any &amp;operator=(const T &amp;value);
+
+        Any *clone() const;
+    };
+
+    class Iterator
+    {
+    public:
+        Iterator(Any *pos);
+        Any operator*() const;
+        bool operator!=(const Iterator &amp;other) const;
+        bool operator==(const Iterator &amp;other) const;
+        const Iterator &amp;operator++();
+        const Iterator &amp;operator--();
+        const Iterator &amp;operator++(int);
+        const Iterator &amp;operator--(int);
+        Iterator &amp;operator=(const Iterator &amp;other);
+
+    private:
+        Any *_pos;
+    };
+
+private:
+    size_t _length, _capacity;
+    Any *list = nullptr;
+
+public:
+    List(size_t len = 0);
+
+    List(const List &amp;other);
+
+    List(const List *other);
+
+    ~List();
+
+    size_t length() const;
+
+    size_t capacity() const;
+
+    void resize(size_t len);
+
+    template &lt;typename T&gt;
+    void add(const T &amp;value);
+
+    void add(const char *value);
+
+    void pop();
+
+    void pop(size_t num);
+
+    void clear();
+
+    void swap(List &amp;other);
+
+    Any &amp;operator[](pos_t index);
+
+    Any &amp;at(size_t index);
+
+    List reversed() const;
+
+    List *clone() const;
+
+    List &amp;operator=(const List &amp;other);
+
+    List &amp;operator+(const List &amp;other) const;
+
+    List &amp;operator+=(const List &amp;other);
+
+    List operator()(pos_t st, pos_t ed) const;
+
+    Any operator()(pos_t index) const;
+
+    Iterator begin();
+
+    Iterator end();
+};
+
+List::Iterator::Iterator(Any *pos) : _pos(pos) {}
+
+typename List::Any List::Iterator::operator*() const { return *_pos; }
+
+bool List::Iterator::operator!=(const List::Iterator &amp;other) const { return _pos != other._pos; }
+
+bool List::Iterator::operator==(const List::Iterator &amp;other) const { return _pos == other._pos; }
+
+const typename List::Iterator &amp;List::Iterator::operator++()
+{
+    ++_pos;
+    return *this;
+}
+const typename List::Iterator &amp;List::Iterator::operator++(int flag)
+{
+    Iterator *ret = new Iterator(_pos);
+    ++_pos;
+    return *ret;
+}
+const typename List::Iterator &amp;List::Iterator::operator--()
+{
+    Iterator *ret = new Iterator(_pos);
+    --_pos;
+    return *ret;
+}
+const typename List::Iterator &amp;List::Iterator::operator--(int flat)
+{
+    --_pos;
+    return *this;
+}
+
+typename List::Iterator &amp;List::Iterator::operator=(const typename List::Iterator &amp;other)
+{
+    _pos = other._pos;
+    return *this;
+}
+
+template &lt;typename T&gt;
+List::Any::Element&lt;T&gt;::Element(const T &amp;value) : _data(value) {}
+
+template &lt;typename T&gt;
+const std::type_info &amp;List::Any::Element&lt;T&gt;::type() const
+{
+    return typeid(T);
+}
+
+template &lt;typename T&gt;
+typename List::Any::Object *List::Any::Element&lt;T&gt;::clone() const
+{
+    return new Element(_data);
+}
+
+template &lt;typename T&gt;
+T &amp;List::Any::Element&lt;T&gt;::data()
+{
+    return _data;
+}
+
+List::Any::Any() : content(nullptr) {}
+
+template &lt;typename T&gt;
+List::Any::Any(const T &amp;value) : content(new Element&lt;T&gt;(value)) {}
+
+List::Any::Any(const Any &amp;other) : content(other.content == nullptr ? nullptr : other.content-&gt;clone()) {}
+
+List::Any::~Any() { erase(); }
+
+bool List::Any::empty() const
+{
+    return content == nullptr;
+}
+
+void List::Any::erase()
+{
+    if (!empty())
+    {
+        delete content;
+        content = nullptr;
+    }
+}
+
+void List::Any::move_to(Any &amp;destination)
+{
+    destination.erase();
+    if (!empty())
+        destination.content = content;
+    content = nullptr;
+}
+
+template &lt;typename T&gt;
+T &amp;List::Any::cast()
+{
+    if (empty())
+    {
+        throw &quot;Cast nullptr!&quot;;
+    }
+    return dynamic_cast&lt;typename List::Any::Element&lt;T&gt; *&gt;(content)-&gt;data();
+}
+
+template &lt;typename T&gt;
+List::Any::operator T()
+{
+    return cast&lt;T&gt;();
+}
+
+void List::Any::swap(Any &amp;other)
+{
+    std::swap(content, other.content);
+}
+
+const std::type_info &amp;List::Any::type() const
+{
+    return (content == nullptr) ? typeid(void) : content-&gt;type();
+}
+
+typename List::Any &amp;List::Any::operator=(const List::Any &amp;other)
+{
+    if (content == other.content)
+    {
+        return *this;
+    }
+    erase();
+    content = other.content == nullptr ? nullptr : other.content-&gt;clone();
+    return *this;
+}
+
+template &lt;typename T&gt;
+typename List::Any &amp;List::Any::operator=(const T &amp;value)
+{
+    erase();
+    content = new Element&lt;T&gt;(value);
+    return *this;
+}
+
+typename List::Any *List::Any::clone() const
+{
+    return new Any(*this);
+}
+
+List::List(List::size_t len)
+{
+    _length = 0;
+    _capacity = 0;
+    resize(len);
+}
+
+List::List(const List &amp;other) : List(&amp;other) {}
+
+List::List(const List *other)
+{
+    if (other == nullptr)
+    {
+        clear();
+    }
+    else
+    {
+        if (list != nullptr)
+        {
+            delete[] list;
+        }
+        _length = other-&gt;_length;
+        _capacity = other-&gt;_capacity;
+        list = other-&gt;clone()-&gt;list;
+    }
+}
+
+List::~List()
+{
+    delete[] list;
+}
+
+List::size_t List::length() const
+{
+    return _length;
+}
+
+List::size_t List::capacity() const
+{
+    return _capacity;
+}
+
+void List::resize(size_t new_length)
+{
+    for (size_t i = new_length + 1; i &lt; _capacity; ++i)
+        list[i].erase();
+    size_t new_capacity = new_length &lt;&lt; 1;
+    if (new_capacity == 0)
+        new_capacity = 2;
+    Any *new_list = new Any[new_capacity];
+    {
+        size_t lim = _length &lt; new_length ? _length : new_length;
+        for (size_t i = 0; i &lt; lim; i++)
+        {
+            list[i].move_to(new_list[i]);
+        }
+    }
+    _length = new_length;
+    _capacity = new_capacity;
+    list = new_list;
+}
+
+template &lt;typename T&gt;
+void List::add(const T &amp;value)
+{
+    if (_length == _capacity)
+    {
+        resize(_length);
+    }
+    list[_length++] = Any(value);
+}
+
+void List::add(const char *value)
+{
+    add(std::string(value));
+}
+
+void List::pop()
+{
+    if (_length == 0)
+        throw &quot;Empty pop&quot;;
+    list[--_length].erase();
+    if (_length &lt; (_capacity &gt;&gt; 2))
+        resize(_length);
+}
+
+void List::pop(List::size_t num)
+{
+    for (size_t i = 0; i &lt; num; ++i)
+    {
+        pop();
+    }
+}
+
+void List::clear()
+{
+    resize(0);
+}
+
+void List::swap(List &amp;other)
+{
+    std::swap(_length, other._length);
+    std::swap(_capacity, other._capacity);
+    std::swap(list, other.list);
+}
+
+typename List::Any &amp;List::operator[](List::pos_t index)
+{
+    if (index &lt; 0)
+    {
+        index += _length;
+    }
+    if (index &lt; 0 || index &gt;= (pos_t)_length)
+    {
+        throw &quot;Index Out Of Bounds Exception&quot;;
+    }
+    return list[index];
+}
+
+List *List::clone() const
+{
+    List *ret = new List();
+    ret-&gt;_length = _length;
+    ret-&gt;_capacity = _capacity;
+    ret-&gt;list = new Any[_capacity];
+    for (size_t i = 0; i &lt; _length; ++i)
+    {
+        ret-&gt;list[i] = *list[i].clone();
+    }
+    return ret;
+}
+
+List &amp;List::operator+(const List &amp;other) const
+{
+    List *ret = new List(_length + other._length);
+    for (size_t i = 0; i &lt; _length; i++)
+    {
+        ret-&gt;list[i] = *list[i].clone();
+    }
+    for (size_t i = 0; i &lt; other._length; i++)
+    {
+        ret-&gt;list[i + _length] = *other.list[i].clone();
+    }
+    return *ret;
+}
+
+List &amp;List::operator+=(const List &amp;other)
+{
+    size_t old_length = _length;
+    resize(_length + other._length);
+    for (size_t i = old_length; i &lt; _length; i++)
+    {
+        list[i] = *other.list[i].clone();
+    }
+    return *this;
+}
+
+List &amp;List::operator=(const List &amp;other)
+{
+    List *ptr = other.clone();
+    _length = ptr-&gt;_length;
+    _capacity = ptr-&gt;_capacity;
+    list = ptr-&gt;list;
+    return *this;
+}
+
+List List::operator()(List::pos_t st, List::pos_t ed) const
+{
+    if (st &gt;= (pos_t)_length || -st &gt; (pos_t)_length || ed &gt;= (pos_t)_length || -ed &gt; (pos_t)_length)
+        return *(new List());
+    if (st &lt; 0)
+        st = (pos_t)_length + st;
+    if (ed &lt; 0)
+        ed = (pos_t)_length + ed + 1;
+    if (st &gt;= ed)
+        return *(new List());
+    List *ret = new List(ed - st);
+    for (size_t i = 0; i &lt; ret-&gt;_length; i++)
+    {
+        ret-&gt;list[i] = *list[i + st].clone();
+    }
+    return *ret;
+}
+
+typename List::Any List::operator()(List::pos_t index) const
+{
+    if (index &lt; 0)
+    {
+        index += _length;
+    }
+    if (index &lt; 0 || index &gt;= (pos_t)_length)
+    {
+        throw &quot;Index Out Of Bounds Exception&quot;;
+    }
+    return list[index];
+}
+
+typename List::Iterator List::begin()
+{
+    return Iterator(&amp;list[0]);
+}
+typename List::Iterator List::end()
+{
+    return Iterator(&amp;list[_length]);
+}
+
+class Tester
+{
+private:
+    int val;
+
+public:
+    int &amp;data()
+    {
+        return val;
+    }
+    Tester(int x = 0) : val(x) {}
+};
+
+int main()
+{
+    List t;
+    t.add(0.5);
+    t.add(1.6);
+    t.add(2.7);
+    t.add(3.8);
+    t.add(4.4);
+    t.add(&quot;Test&quot;);
+    t.add(Tester(15));
+    t.add(5.6);
+    t.add(6.4);
+    List q = t(0, 5) + t(-2, -1);
+    for (auto x : q)
+    {
+        std::cout &lt;&lt; double(x) &lt;&lt; std::endl;
+    }
+    std::cout &lt;&lt; t[5].cast&lt;std::string&gt;() &lt;&lt; std::endl;
+    std::cout &lt;&lt; t[6].cast&lt;Tester&gt;().data() &lt;&lt; std::endl;
+
+    system(&quot;pause&quot;);
+}</code></pre>
+	</div>
+	<div class="meta split">
+		
+		<time class="post-date" datetime="2020-08-13T11:52:06.445Z" itemprop="datePublished">2020-08-13</time>
+	</div>
+</article>
+
+<!--评论-->
+
+	
+<div class="ds-thread" data-thread-key="不定类型动态数组" data-title="不定类型动态数组" data-url="http://youmu.love/2020/08/13/%E4%B8%8D%E5%AE%9A%E7%B1%BB%E5%9E%8B%E5%8A%A8%E6%80%81%E6%95%B0%E7%BB%84/"></div>
+<script type="text/javascript">
+
+var duoshuoQuery = {short_name:"yumemor"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0]
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+</script>
+
+
+  
+</div>
+
+
+  <svg id="bigTriangleColor" width="100%" height="40" viewBox="0 0 100 102" preserveAspectRatio="none">
+    <path d="M0 0 L50 100 L100 0 Z"></path>
+  </svg>
+
+  
+
+
+  <div class="wrapper"></div>
+
+
+
+
+
+<div class="fat-footer">
+	<div class="wrapper">
+		<div class="layout layout--center">
+			<div class="layout__item palm-mb">
+				<div class="media">
+					<img class="headimg" src='https://raw.githubusercontent.com/pass-er-by/imagehost/master/image/fox3.jpeg' alt='Eserinc'>
+					<div class="media__body">
+						<h4>Eserinc</h4>
+						<p class='site-description'>Love life.</p>
+					</div>
+				</div>
+				<div class="author-contact">
+					<ul>
+						
+							
+							<li>
+				        		<a href="https://github.com/pass-er-by" target="_blank">
+				        			
+				        				<i class="iconfont icon-github"></i>
+				        			
+				        		</a>
+				        	</li>
+						
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<footer class="footer" role="contentinfo">
+	<div class="wrapper wrapper--wide split split--responsive">
+		
+		<span>Theme by <a href="http://github.com/justpsvm" target="_blank" rel="noopener">justpsvm</a>. Powered by <a href="http://hexo.io" target="_blank" rel="noopener">Hexo</a></span>
+	</div>
+</footer>
+
+	<!-－这里导入了 lib.js 里面涵盖了 jQuery 等框架 所以注释掉-->
+	<!--<script src="http://lib.sinaapp.com/js/jquery/2.0/jquery.min.js"></script>-->
+	<script src="/js/lib.js"></script>
+	<script src="/js/google-code-prettify/prettify.js"></script>
+	<script src="/js/module.js"></script>
+	<script src="/js/script.js"></script>
+	
+	<script type='text/javascript'>
+		//代码高亮
+		$(document).ready(function(){
+	 		$('pre').addClass('prettyprint linenums').attr('style', 'overflow:auto;');
+   			prettyPrint();
+		});
+	</script>
+	</body>
+</html>
